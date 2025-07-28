@@ -1,4 +1,4 @@
-# credit_card_dashboard.py - v0.5
+
 import os
 import pandas as pd
 import streamlit as st
