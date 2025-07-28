@@ -8,7 +8,6 @@ chrome_profile/
 temp/
 money-monitor.git.bfg-report/
 money-monitor.git/
-downloads/
 __pycache__/
 *.pyc
 *.xlsx
