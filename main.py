@@ -1,3 +1,4 @@
+# main.py - v0.19
 import os
 from dotenv import load_dotenv
 import pandas as pd
@@ -16,7 +17,7 @@ LEUMI_PASSWORD = os.getenv("LEUMI_PASSWORD")
 
 LEUMI_URL = "https://www.leumi.co.il/he"
 
-SCRIPT_VERSION = "0.18"
+SCRIPT_VERSION = "0.19"
 DO_LEUMI = False
 DO_MAX = True
 
@@ -61,7 +62,7 @@ def main():
             )
             page = browser.new_page()
 
-            # --- Login to Leumi (Always Required) ---
+            # --- Login to Leumi ---
             print("[🌐] Navigating to Leumi homepage...")
             page.goto(LEUMI_URL, timeout=20000)
 
@@ -103,42 +104,84 @@ def main():
 
             # --- Max Credit Card Flow ---
             if DO_MAX:
-                print("[🌐] Navigating to Max credit section...")
-                page.locator("app-nav-menu").get_by_text("כרטיסי אשראי").click()
-                page.locator("a").filter(has_text="דפי פירוט").click()
+                print("[MAX] Starting MAX flow...")
 
-                print("[💳] Clicking on 'MAX 2711' card...")
-                page.get_by_text("MAX 2711", exact=True).click()
+                try:
+                    print("[MAX] Navigating to Max credit section...")
+                    page.locator("app-nav-menu").get_by_text("כרטיסי אשראי").click()
 
-                print("[📤] Clicking 'פעולות בכרטיס' on left section...")
-                actions_button = page.locator("button").filter(has_text="פעולות בכרטיס").first
-                actions_button.click()
+                    print("[MAX] Clicking on דפי פירוט link...")
+                    page.locator("a").filter(has_text="דפי פירוט").click()
 
-                print("[🖱️] Waiting for 'דפי פירוט' option and listening for popup event...")
-                with page.expect_popup() as popup_event:
-                    page.locator("#main a").filter(has_text="דפי פירוט").click()
+                    print("[MAX] Clicking on specific card (MAX 2711)...")
+                    page.get_by_text("MAX 2711", exact=True).click()
 
-                print("[✅] Popup opened, maximizing and waiting for DOM...")
-                popup_page = popup_event.value
-                popup_page.wait_for_load_state("domcontentloaded", timeout=30000)
-                popup_page.bring_to_front()
-                popup_page.evaluate("window.moveTo(0,0); window.resizeTo(screen.width,screen.height);")
+                    print("[MAX] Clicking פעולות בכרטיס button...")
+                    actions_button = page.locator("button").filter(has_text="פעולות בכרטיס").first
+                    actions_button.click()
 
-                print("[🔽] Waiting for dropdown with 'max executive'...")
-                popup_page.wait_for_selector("button:has-text('max executive')", timeout=30000)
-                popup_page.get_by_role("button", name="max executive").click()
-                popup_page.get_by_role("button", name="כל הכרטיסים").click()
-                print("[✅] Selected 'כל הכרטיסים'.")
+                    print("[MAX] Waiting for popup event...")
+                    with page.expect_popup() as popup_event:
+                        page.locator("#main a").filter(has_text="דפי פירוט").click()
 
-                print("[📥] Downloading 'יצוא לאקסל' from popup...")
-                popup_page.wait_for_selector("text=יצוא לאקסל", timeout=30000)
-                with popup_page.expect_download(timeout=30000) as dl_max:
-                    popup_page.get_by_text("יצוא לאקסל", exact=True).click()
-                download2 = dl_max.value
-                download2.save_as(MAX_FILE)
-                print(f"[✅] Max Excel saved to {MAX_FILE}")
+                    print("[MAX] Popup triggered successfully.")
+                    popup_page = popup_event.value
+                    popup_page.wait_for_load_state("domcontentloaded", timeout=30000)
+                    popup_page.bring_to_front()
 
-            # --- Parse ---
+                    # --- Maximize window + Log size ---
+                    print("[MAX] Maximizing popup window...")
+                    print("[MAX] Logging popup window size before maximizing...")
+                    dimensions = popup_page.evaluate("""
+                    () => ({
+                        outerWidth: window.outerWidth,
+                        outerHeight: window.outerHeight,
+                        innerWidth: window.innerWidth,
+                        innerHeight: window.innerHeight,
+                        screenWidth: screen.width,
+                        screenHeight: screen.height
+                    })
+                    """)
+                    print(f"[MAX] Popup dimensions: outer=({dimensions['outerWidth']}x{dimensions['outerHeight']}), "
+                          f"inner=({dimensions['innerWidth']}x{dimensions['innerHeight']}), "
+                          f"screen=({dimensions['screenWidth']}x{dimensions['screenHeight']})")
+                    popup_page.evaluate("window.resizeTo(1200, 1000);")
+
+                    # --- Debug Text Dump ---
+                    debug_file = os.path.join(DOWNLOAD_PATH, "popup_visible_texts.txt")
+                    print(f"[DEBUG] Writing visible texts to: {debug_file}")
+                    try:
+                        with open(debug_file, "w", encoding="utf-8") as f:
+                            for text in popup_page.locator("body *").all_inner_texts():
+                                clean = text.strip()
+                                if clean:
+                                    f.write(clean + "\n")
+                    except Exception as e:
+                        print(f"[❌ DEBUG] Failed to write debug file: {e}")
+
+                    print("[MAX] Waiting 1 second before locating dropdown...")
+                    popup_page.wait_for_timeout(1000)
+
+                    print("[MAX] Clicking dropdown using fallback by visible text...")
+                    popup_page.get_by_text("max executive", exact=False).first.click()
+
+                    popup_page.wait_for_timeout(500)
+
+                    print("[MAX] Selecting 'כל הכרטיסים'...")
+                    popup_page.get_by_text("כל הכרטיסים", exact=True).click()
+
+                    print("[MAX] Waiting for and clicking 'יצוא לאקסל'...")
+                    popup_page.wait_for_selector("text=יצוא לאקסל", timeout=30000)
+                    with popup_page.expect_download(timeout=30000) as dl_max:
+                        popup_page.get_by_text("יצוא לאקסל", exact=True).click()
+                    download2 = dl_max.value
+                    download2.save_as(MAX_FILE)
+                    print(f"[MAX ✅] Max Excel saved to {MAX_FILE}")
+
+                except Exception as e:
+                    print(f"[❌ MAX Flow Error] {e}")
+
+            # --- Parsing after download ---
             if DO_LEUMI:
                 parse_transactions_html(LEUMI_FILE)
             if DO_MAX:
