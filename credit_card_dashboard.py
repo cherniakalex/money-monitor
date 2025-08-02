@@ -160,43 +160,7 @@ TITLE_FONTSIZE = 18
 LABEL_FONTSIZE = 14
 TICK_FONTSIZE = 10
 
-
-# --- Plot 2: By Category ---
-st.subheader("Plot 2: Spending by category")
-category_sum = df_month.groupby("Category_Eng")["Amount"].sum().sort_values(ascending=False)
-plt.figure(figsize=FIG_SIZE)
-category_sum.plot(kind="bar")
-plt.title("Spending by Category", fontsize=TITLE_FONTSIZE)
-plt.ylabel("Amount", fontsize=LABEL_FONTSIZE)
-plt.xticks(rotation=45, fontsize=TICK_FONTSIZE)
-plt.yticks(fontsize=TICK_FONTSIZE)
-st.pyplot(plt)
-
-# --- Plot 3: By Business ---
-st.subheader("Plot 3: Spending by business")
-business_sum = df_month.groupby("Business_Eng")["Amount"].sum().sort_values(ascending=False).head(20)
-plt.figure(figsize=FIG_SIZE)
-business_sum.plot(kind="bar")
-plt.title("Top 20 Businesses by Spending", fontsize=TITLE_FONTSIZE)
-plt.ylabel("Amount", fontsize=LABEL_FONTSIZE)
-plt.xticks(rotation=45, fontsize=TICK_FONTSIZE)
-plt.yticks(fontsize=TICK_FONTSIZE)
-st.pyplot(plt)
-
-# --- Plot 4: By Card Number ---
-st.subheader("Plot 4: Spending by card number")
-card_sum = df_month.groupby("CardNumber")["Amount"].sum().sort_values(ascending=False)
-card_sum.index = card_sum.index.astype(str).str.extract(r"(\d{4})")[0]
-plt.figure(figsize=FIG_SIZE)
-card_sum.plot(kind="bar")
-plt.title("Spending by Card (Last 4 Digits)", fontsize=TITLE_FONTSIZE)
-plt.xlabel("Card", fontsize=LABEL_FONTSIZE)
-plt.ylabel("Amount", fontsize=LABEL_FONTSIZE)
-plt.xticks(rotation=0, fontsize=TICK_FONTSIZE)
-plt.yticks(fontsize=TICK_FONTSIZE)
-st.pyplot(plt)
-
-# --- Plot 5: Daily Spending by Card ---
+# --- Plot 1: Daily Spending by Card ---
 st.subheader("Plot 5: Daily spending by card")
 
 # Group by Date and CardNumber, sum amounts
@@ -227,7 +191,7 @@ plt.yticks(fontsize=TICK_FONTSIZE + 4)
 plt.legend(title="Card", fontsize=TICK_FONTSIZE + 2, title_fontsize=LABEL_FONTSIZE)
 st.pyplot(fig)
 
-# --- Plot 6: Today's Spending by Card ---
+# --- Plot 2: Today's Spending by Card ---
 st.subheader("Plot 6: Today's Spending by Card")
 
 # Get today's date (without time)
@@ -258,4 +222,39 @@ else:
         plt.text(bar.get_width() + 10, bar.get_y() + bar.get_height()/2, f"{amt:.0f}", va="center", fontsize=TICK_FONTSIZE + 2)
 
     st.pyplot(plt)
+
+# --- Plot 3: By Category ---
+st.subheader("Plot 2: Spending by category")
+category_sum = df_month.groupby("Category_Eng")["Amount"].sum().sort_values(ascending=False)
+plt.figure(figsize=FIG_SIZE)
+category_sum.plot(kind="bar")
+plt.title("Spending by Category", fontsize=TITLE_FONTSIZE)
+plt.ylabel("Amount", fontsize=LABEL_FONTSIZE)
+plt.xticks(rotation=45, fontsize=TICK_FONTSIZE)
+plt.yticks(fontsize=TICK_FONTSIZE)
+st.pyplot(plt)
+
+# --- Plot 4: By Business ---
+st.subheader("Plot 3: Spending by business")
+business_sum = df_month.groupby("Business_Eng")["Amount"].sum().sort_values(ascending=False).head(20)
+plt.figure(figsize=FIG_SIZE)
+business_sum.plot(kind="bar")
+plt.title("Top 20 Businesses by Spending", fontsize=TITLE_FONTSIZE)
+plt.ylabel("Amount", fontsize=LABEL_FONTSIZE)
+plt.xticks(rotation=45, fontsize=TICK_FONTSIZE)
+plt.yticks(fontsize=TICK_FONTSIZE)
+st.pyplot(plt)
+
+# --- Plot 5: By Card Number ---
+st.subheader("Plot 4: Spending by card number")
+card_sum = df_month.groupby("CardNumber")["Amount"].sum().sort_values(ascending=False)
+card_sum.index = card_sum.index.astype(str).str.extract(r"(\d{4})")[0]
+plt.figure(figsize=FIG_SIZE)
+card_sum.plot(kind="bar")
+plt.title("Spending by Card (Last 4 Digits)", fontsize=TITLE_FONTSIZE)
+plt.xlabel("Card", fontsize=LABEL_FONTSIZE)
+plt.ylabel("Amount", fontsize=LABEL_FONTSIZE)
+plt.xticks(rotation=0, fontsize=TICK_FONTSIZE)
+plt.yticks(fontsize=TICK_FONTSIZE)
+st.pyplot(plt)
 
