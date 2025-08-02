@@ -1,4 +1,4 @@
-# main.py - v0.21
+# main.py - v0.23
 import os
 from dotenv import load_dotenv
 import pandas as pd
@@ -6,23 +6,21 @@ from datetime import datetime
 from playwright.sync_api import sync_playwright, TimeoutError
 
 # --- CONFIG ---
+SCRIPT_VERSION = "v0.23"
 CHROME_USER_DATA_DIR = r"C:\Projects\money_monitor\chrome_profile"
 DOWNLOAD_PATH = r"C:\Projects\money_monitor\downloads"
 os.makedirs(DOWNLOAD_PATH, exist_ok=True)
 
-load_dotenv()
-
-LEUMI_USERNAME = os.getenv("LEUMI_USERNAME")
-LEUMI_PASSWORD = os.getenv("LEUMI_PASSWORD")
-
 LEUMI_URL = "https://www.leumi.co.il/he"
+LEUMI_FILE = os.path.join(DOWNLOAD_PATH, "leumi-transactions.html")
+MAX_FILE = os.path.join(DOWNLOAD_PATH, "max-credit-transactions.xlsx")
 
-SCRIPT_VERSION = "0.21"
 DO_LEUMI = False
 DO_MAX = True
 
-LEUMI_FILE = os.path.join(DOWNLOAD_PATH, "leumi-transactions.html")
-MAX_FILE = os.path.join(DOWNLOAD_PATH, "max-credit-transactions.xlsx")
+load_dotenv()
+LEUMI_USERNAME = os.getenv("LEUMI_USERNAME")
+LEUMI_PASSWORD = os.getenv("LEUMI_PASSWORD")
 
 def parse_transactions_html(filepath):
     try:
@@ -33,7 +31,7 @@ def parse_transactions_html(filepath):
             print(df.head())
         return df
     except Exception as e:
-        print(f"[\u274C] Failed parsing Leumi HTML: {e}")
+        print(f"[❌] Failed parsing Leumi HTML: {e}")
         return None
 
 def parse_max_excel(filepath):
@@ -43,12 +41,12 @@ def parse_max_excel(filepath):
         print(df.head())
         return df
     except Exception as e:
-        print(f"[\u274C] Failed parsing Max Excel: {e}")
+        print(f"[❌] Failed parsing Max Excel: {e}")
         return None
 
 def main():
     print(f"\n===== \U0001F9BE Running Finance Scraper v{SCRIPT_VERSION} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} =====")
-    print(f"[\u2699\ufe0f] Configuration: DO_LEUMI = {DO_LEUMI}, DO_MAX = {DO_MAX}")
+    print(f"[⚙️] Configuration: DO_LEUMI = {DO_LEUMI}, DO_MAX = {DO_MAX}")
 
     try:
         with sync_playwright() as p:
@@ -63,10 +61,10 @@ def main():
             print("[\U0001F310] Navigating to Leumi homepage...")
             page.goto(LEUMI_URL, timeout=20000)
 
-            print("[\U0001F5B1\ufe0f] Clicking login link...")
+            print("[\U0001F5B1️] Clicking login link...")
             page.get_by_text("כניסה לחשבונך").click()
 
-            print("[\u23F3] Waiting for login page to load...")
+            print("[⏳] Waiting for login page to load...")
             page.wait_for_load_state("networkidle", timeout=20000)
 
             print("[\U0001F510] Waiting for username and password fields...")
@@ -104,7 +102,6 @@ def main():
                     popup_page.bring_to_front()
 
                     print("[MAX] Maximizing popup window...")
-                    print("[MAX] Popup dimensions: outer=(...), inner=(...), screen=(...)")
                     popup_page.evaluate("window.resizeTo(1200, 1000);")
 
                     debug_file = os.path.join(DOWNLOAD_PATH, "popup_visible_texts.txt")
@@ -116,7 +113,7 @@ def main():
                                 if clean:
                                     f.write(clean + "\n")
                     except Exception as e:
-                        print(f"[\u274C DEBUG] Failed to write debug file: {e}")
+                        print(f"[❌ DEBUG] Failed to write debug file: {e}")
 
                     popup_page.wait_for_timeout(1000)
                     popup_page.get_by_text("max executive", exact=False).first.click()
@@ -131,7 +128,7 @@ def main():
                         print("[DEBUG] Taking screenshot before expanding export section...")
                         popup_page.screenshot(path="popup_debug_before_export.png", full_page=True)
                     except Exception as e:
-                        print(f"[\u274C] Failed to scroll to export section: {e}")
+                        print(f"[❌] Failed to scroll to export section: {e}")
 
                     print("[MAX] Waiting for and clicking 'להורדת פירוט החיובים כקובץ אקסל'...")
                     popup_page.wait_for_selector("text=להורדת פירוט החיובים כקובץ אקסל", timeout=30000)
@@ -142,7 +139,7 @@ def main():
                     print(f"[MAX ✅] Max Excel saved to {MAX_FILE}")
 
                 except Exception as e:
-                    print(f"[\u274C MAX Flow Error] {e}")
+                    print(f"[❌ MAX Flow Error] {e}")
 
             if DO_LEUMI:
                 parse_transactions_html(LEUMI_FILE)
@@ -153,10 +150,10 @@ def main():
             browser.close()
 
     except TimeoutError:
-        print("[\u274C] Timeout occurred during browser actions.")
+        print("[❌] Timeout occurred during browser actions.")
     except Exception as e:
-        print(f"[\u274C] Unexpected error: {e}")
+        print(f"[❌] Unexpected error: {e}")
 
 if __name__ == "__main__":
     main()
-    print("[\u2139\ufe0f] Finished Finance Scraper.")
+    print("[ℹ️] Finished Finance Scraper.")

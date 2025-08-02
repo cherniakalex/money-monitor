@@ -1,19 +1,16 @@
-
+# credit_card_dashboard.py - v0.23
 import os
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-VERSION = "v0.6"
+VERSION = "v0.23"
 LAST_MODIFIED = datetime.fromtimestamp(os.path.getmtime(__file__)).strftime("%Y-%m-%d %H:%M:%S")
 st.markdown(f"**Credit Card Dashboard - {VERSION}** (Last modified: {LAST_MODIFIED})")
 
 # --- File Loading ---
-# df1 = pd.read_excel("max_2025_07.xlsx")
-# df2 = pd.read_excel("max_2025_08.xlsx")
-# df = pd.concat([df1, df2], ignore_index=True)
-df = pd.read_excel("downloads/manual/max_all_3_month.xlsx", header=3)
+df = pd.read_excel("downloads/max-credit-transactions.xlsx", header=3)
 
 # --- Column Mapping ---
 COLUMN_MAPPING = {
@@ -144,8 +141,7 @@ BUSINESS_TRANSLATIONS = {
     "סופר פארם רוטשילד": "Super-Pharm",
     "מקדונלד'סWALLET-": "McDonalds Wallet",
     "מ.תחבורה - פנגו מוביט": "Pango Moovit",
-    "רשות המיסים-מידע": "Israel Tax Authority - Info",
-    # Add more if needed
+    "רשות המיסים-מידע": "Israel Tax Authority - Info"
 }
 
 df["Category_Eng"] = df["Category"].map(CATEGORY_TRANSLATIONS).fillna(df["Category"])
@@ -198,7 +194,6 @@ st.pyplot(plt)
 # --- Plot 4: By Card Number ---
 st.subheader("Plot 4: Spending by card number")
 card_sum = df_month.groupby("CardNumber")["Amount"].sum().sort_values(ascending=False)
-# Handle card numbers robustly
 card_sum.index = card_sum.index.astype(str).str.extract(r"(\d{4})")[0]
 plt.figure(figsize=FIG_SIZE)
 card_sum.plot(kind="bar")
