@@ -237,3 +237,35 @@ plt.yticks(fontsize=TICK_FONTSIZE + 4)
 plt.legend(title="Card", fontsize=TICK_FONTSIZE + 2, title_fontsize=LABEL_FONTSIZE)
 st.pyplot(fig)
 
+# --- Plot 6: Today's Spending by Card ---
+st.subheader("Plot 6: Today's Spending by Card")
+
+# Get today's date (without time)
+today = pd.to_datetime(datetime.today().date())
+
+# Filter only today's transactions
+df_today = df[df["Date"] == today]
+
+if df_today.empty:
+    st.info("No transactions found for today.")
+else:
+    # Group by card and sum
+    today_grouped = df_today.groupby("CardNumber")["Amount"].agg(["sum", "count"]).reset_index()
+    today_grouped.columns = ["CardNumber", "Total Spent", "Transactions"]
+    today_grouped["CardNumber"] = today_grouped["CardNumber"].astype(str).str.extract(r"(\d{4})")[0].astype(int)
+
+    # Plot
+    plt.figure(figsize=(8, 4))
+    bars = plt.barh(today_grouped["CardNumber"], today_grouped["Total Spent"])
+    plt.xlabel("Amount Spent", fontsize=LABEL_FONTSIZE)
+    plt.ylabel("Card (Last 4 digits)", fontsize=LABEL_FONTSIZE)
+    plt.title("Today's Total Spending per Card", fontsize=TITLE_FONTSIZE)
+    plt.xticks(fontsize=TICK_FONTSIZE + 2)
+    plt.yticks(fontsize=TICK_FONTSIZE + 2)
+    plt.grid(axis="x", linestyle="--", alpha=0.7)
+
+    for bar, amt in zip(bars, today_grouped["Total Spent"]):
+        plt.text(bar.get_width() + 10, bar.get_y() + bar.get_height()/2, f"{amt:.0f}", va="center", fontsize=TICK_FONTSIZE + 2)
+
+    st.pyplot(plt)
+
