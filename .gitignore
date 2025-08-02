@@ -7,6 +7,7 @@ chrome_profile/
 # Downloaded/temporary files
 temp/
 manual/
+!downloads/max-credit-transactions.xlsx
 money-monitor.git.bfg-report/
 money-monitor.git/
 __pycache__/
