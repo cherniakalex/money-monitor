@@ -160,16 +160,6 @@ TITLE_FONTSIZE = 18
 LABEL_FONTSIZE = 14
 TICK_FONTSIZE = 10
 
-# --- Plot 1: Daily Scatter ---
-st.subheader("Plot 1: Daily spending (scatter)")
-plt.figure(figsize=FIG_SIZE)
-plt.scatter(df_month["Date"], df_month["Amount"])
-plt.title("Daily Spending", fontsize=TITLE_FONTSIZE)
-plt.xlabel("Date", fontsize=LABEL_FONTSIZE)
-plt.ylabel("Amount", fontsize=LABEL_FONTSIZE)
-plt.xticks(rotation=45, fontsize=TICK_FONTSIZE)
-plt.yticks(fontsize=TICK_FONTSIZE)
-st.pyplot(plt)
 
 # --- Plot 2: By Category ---
 st.subheader("Plot 2: Spending by category")
@@ -207,7 +197,7 @@ plt.yticks(fontsize=TICK_FONTSIZE)
 st.pyplot(plt)
 
 # --- Plot 5: Daily Spending by Card ---
-st.subheader("Plot 5: Daily spending by card (stacked bar)")
+st.subheader("Plot 5: Daily spending by card")
 
 # Group by Date and CardNumber, sum amounts
 daily_card = df_month.groupby(["Date", "CardNumber"])["Amount"].sum().reset_index()
