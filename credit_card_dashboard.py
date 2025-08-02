@@ -4,6 +4,8 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 from datetime import datetime
+import matplotlib.dates as mdates
+import calendar
 
 VERSION = "v0.23"
 LAST_MODIFIED = datetime.fromtimestamp(os.path.getmtime(__file__)).strftime("%Y-%m-%d %H:%M:%S")
@@ -203,3 +205,35 @@ plt.ylabel("Amount", fontsize=LABEL_FONTSIZE)
 plt.xticks(rotation=0, fontsize=TICK_FONTSIZE)
 plt.yticks(fontsize=TICK_FONTSIZE)
 st.pyplot(plt)
+
+# --- Plot 5: Daily Spending by Card ---
+st.subheader("Plot 5: Daily spending by card (stacked bar)")
+
+# Group by Date and CardNumber, sum amounts
+daily_card = df_month.groupby(["Date", "CardNumber"])["Amount"].sum().reset_index()
+
+# Pivot so each card is a column
+grouped = daily_card.pivot(index="Date", columns="CardNumber", values="Amount").fillna(0)
+
+# Ensure card numbers are clean 4-digit integers
+grouped.columns = grouped.columns.astype(str).str.extract(r"(\d{4})")[0].astype(int)
+
+# Plot using matplotlib
+fig, ax = plt.subplots(figsize=FIG_SIZE)
+grouped.plot(kind="bar", stacked=True, ax=ax)
+
+ax.set_title("Daily Spending by Card", fontsize=TITLE_FONTSIZE)
+ax.set_ylabel("Amount", fontsize=LABEL_FONTSIZE)
+
+# Format x-axis to show only Month-Day
+ax.xaxis.set_major_formatter(mdates.DateFormatter('%#d'))
+
+# Set x-axis label to the selected month name (in English)
+month_name = calendar.month_name[pd.to_datetime(selected_month).month]
+ax.set_xlabel(month_name, fontsize=LABEL_FONTSIZE)
+
+plt.xticks(rotation=45, fontsize=TICK_FONTSIZE + 4)
+plt.yticks(fontsize=TICK_FONTSIZE + 4)
+plt.legend(title="Card", fontsize=TICK_FONTSIZE + 2, title_fontsize=LABEL_FONTSIZE)
+st.pyplot(fig)
+
