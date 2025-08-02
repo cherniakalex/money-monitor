@@ -6,8 +6,8 @@ chrome_profile/
 
 # Downloaded/temporary files
 temp/
+manual/
 money-monitor.git.bfg-report/
 money-monitor.git/
 __pycache__/
 *.pyc
-*.xlsx
